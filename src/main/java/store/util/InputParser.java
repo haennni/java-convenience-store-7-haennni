@@ -1,31 +1,33 @@
 package store.util;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 
 public class InputParser {
 
-    public String[] orderParser(String input) {
+    public List<String[]> orderParser(String input) {
         String[] commaParserResult = commaParser(input);
         String[] removeBracketsResult = removeBrackets(commaParserResult);
         return hyphenParser(removeBracketsResult);
     }
 
 
-    public String[] hyphenParser(String[] orders) {
-        for (int i = 0; i < orders.length; i++) {
-            orders[i] = Arrays.toString(orders[i].split("-"));
+    private List<String[]> hyphenParser(String[] orders) {
+        List<String[]> order = new ArrayList<>();
+        for(int i = 0; i < orders.length; i++) {
+            String[] split = orders[i].split("-");
+            order.add(split);
         }
-        return orders;
+        return order;
     }
 
-    public String[] commaParser(String input) {
+    private String[] commaParser(String input) {
         return input.split(", ");
     }
 
-    public String[] removeBrackets(String[] orders) {
+    private String[] removeBrackets(String[] orders) {
         for (int i = 0; i < orders.length; i++) {
-            orders[i] = orders[i].replaceAll("[\\[|\\]]", "");
-        }
+            orders[i] = orders[i].replaceAll("[\\[|\\]]", "");}
         return orders;
     }
 
