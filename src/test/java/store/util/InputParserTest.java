@@ -25,4 +25,13 @@ class InputParserTest {
         assertEquals("[바나나, 10]", Arrays.toString(orders.get(1)));
     }
 
+    @Test
+    void 콤마로_문자열_파싱_테스트() {
+        String input = "1+1,상품,프로모션";
+        String[] result = inputParser.commaParser(input);
+        assertEquals("1+1", result[0]);
+        assertEquals("상품", result[1]);
+        assertEquals("프로모션", result[2]);
+
+    }
 }
