@@ -5,13 +5,14 @@ import store.util.FileReader;
 import store.util.InputParser;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
+
+import static store.repository.ConvenienceStoreRepository.products;
+
 
 public class ProductFactory {
     FileReader fileReader = new FileReader();
     InputParser inputParser = new InputParser();
-    List<Product> products = new ArrayList<>();
 
     public List<Product> toProducts() throws IOException {
         List<String> readProducts = fileReader.readProducts();
@@ -22,8 +23,6 @@ public class ProductFactory {
             products.add(product);}
         return products;
     }
-
-
     private Product toProduct(String[] product) {
         return new Product(
                 product[0],
@@ -31,7 +30,6 @@ public class ProductFactory {
                 Integer.parseInt(product[2]),
                 checkPromotion(product[3]));
     }
-
     private String checkPromotion(String promotionName) {
         if (!(promotionName.equals("null"))) {
             return promotionName;
