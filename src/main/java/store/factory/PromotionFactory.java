@@ -1,18 +1,17 @@
 package store.factory;
 
-import store.domain.Order;
 import store.domain.Promotion;
 import store.util.FileReader;
 import store.util.InputParser;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
+
+import static store.repository.ConvenienceStoreRepository.promotions;
 
 public class PromotionFactory {
     FileReader fileReader = new FileReader();
     InputParser inputParser = new InputParser();
-    List<Promotion> promotions = new ArrayList<>();
 
     public List<Promotion> toPromotions() throws IOException {
         List<String> readPromotions = fileReader.readPromotions();
@@ -23,7 +22,6 @@ public class PromotionFactory {
             promotions.add(promotion);}
         return promotions;
     }
-
 
     private Promotion toPromotion(String[] promotion) {
         return new Promotion(
