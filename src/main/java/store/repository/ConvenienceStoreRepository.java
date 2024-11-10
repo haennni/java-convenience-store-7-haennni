@@ -14,12 +14,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ConvenienceStoreRepository {
-    public static List<Product> products;
+    public static List<Product> products = new ArrayList<>();
     public final static List<Order> orders = new ArrayList<>();
     public final static List<Promotion> promotions = new ArrayList<>();
 
-    ConvenienceStoreRepository(ProductFactory productFactory, PromotionFactory promotionFactory,
-                               OrderFactory orderFactory, InputView inputView, InputParser inputParser) throws IOException {
+    public ConvenienceStoreRepository(ProductFactory productFactory, PromotionFactory promotionFactory,
+                                      OrderFactory orderFactory, InputView inputView, InputParser inputParser) throws IOException {
         products = productFactory.toProducts();
         String orderInput = inputView.orderInput();
         List<String[]> orders = inputParser.orderParser(orderInput);
