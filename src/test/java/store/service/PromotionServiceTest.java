@@ -3,9 +3,7 @@ package store.service;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import store.domain.Order;
-import store.domain.Product;
-import store.domain.Promotion;
+import store.domain.*;
 import store.view.InputView;
 
 import java.util.Arrays;
@@ -14,6 +12,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static store.repository.ConvenienceStoreRepository.products;
 import static store.repository.ConvenienceStoreRepository.promotions;
+import static store.repository.ConvenienceStoreRepository.*;
 
 class PromotionServiceTest {
     private PromotionService promotionService;
@@ -28,21 +27,26 @@ class PromotionServiceTest {
         Product product2 = new Product("오렌지주스", 1800, 9, "MD추천상품");
         products.addAll(Arrays.asList(product1, product2));
         Promotion promo1 = new Promotion("탄산2+1", 2, 1, "2023-11-01", "2024-12-01");
-        Promotion promo2 = new Promotion("MD추천상품", 1, 1,"2023-11-10", "2024-12-10");
+        Promotion promo2 = new Promotion("MD추천상품", 1, 1, "2023-11-10", "2024-12-10");
         promotions.addAll(Arrays.asList(promo1, promo2));
     }
+
     void dataClear() {
         products.clear();
-        promotions.clear();
+        receipt = new Receipt(); // 기존 receipt 객체 초기화
     }
+
     void inputSetting() {
         inputView = new InputView() {
             @Override
             public String promotionInventoryLowInput(String productName, int remainder) {
-                return "Y";}
+                return "Y";
+            }
+
             @Override
             public String promotionFreeBenefitInput(String productName, int promotionGet) {
-                return "Y";}
+                return "Y";
+            }
         };
     }
 
@@ -62,10 +66,8 @@ class PromotionServiceTest {
         Order order = new Order("콜라", 5);
         Promotion promotion = promotions.get(0);
         Product product = products.get(0);
-        // 1+1 프로모션 로직을 직접 실행해 결과 확인
         promotionService.onePlusOnePromotion(product, promotion, order);
         assertEquals(6, order.orderQuantity(), "2+1 프로모션 적용 후 주문 수량이 올바르게 증가해야 함");
-
     }
 
 
@@ -77,7 +79,32 @@ class PromotionServiceTest {
         assertTrue(isValid, "프로모션의 날짜가 유효한 범위 내에 있어야 함");
         Promotion expiredPromotion = new Promotion("MD추천상품", 1, 1, "2022-01-01", "2024-01-31");
         boolean isExpired = promotionService.promotionDateValid(expiredPromotion);
-        assertThat(isExpired).isFalse();  // 만료된 프로모션에 대해 false 반환
+        assertThat(isExpired).isFalse();
     }
 
+    @Test
+    @DisplayName("2+1 프로모션이 적용되어 Benefit이 생성되는지 테스트")
+    void 투_플러스_원_프로모션으로_Benefit이_생성되는지_확인하는_테스트() {
+        Order order = new Order("콜라", 5);
+        Product product = products.get(0);
+        Promotion promotion = promotions.get(0);
+        promotionService.twoPlusOnePromotion(product, promotion, order);
+        Benefit benefit = receipt.benefits().get(0);
+        assertEquals("콜라", benefit.benefitProductName(), "프로모션 적용 상품명이 일치하지않습니다.");
+        assertEquals(2, benefit.benefitQuantity(), "혜택 적용 주문 수량이 일치하지않습니다.");
+        assertEquals(2000, benefit.benefitAmount(),"혜택 금액이 일치하지않습니다.");
+    }
+
+    @Test
+    @DisplayName("1+1 프로모션이 적용되어 Benefit이 생성되는지 테스트")
+    void 원_플러스_원_프로모션으로_Benefit이_생성되는지_확인하는_테스트() {
+        Order order = new Order("오렌지주스", 2);
+        Product product = products.get(1);
+        Promotion promotion = promotions.get(1);
+        promotionService.twoPlusOnePromotion(product, promotion, order);
+        Benefit benefit = receipt.benefits().get(0);
+        assertEquals("오렌지주스", benefit.benefitProductName(), "프로모션 적용 상품명이 일치하지않습니다.");
+        assertEquals(2, benefit.benefitQuantity(), "혜택 적용 주문 수량이 일치하지않습니다.");
+        assertEquals(3600, benefit.benefitAmount(), "혜택 금액이 일치하지않습니다.");
+    }
 }
