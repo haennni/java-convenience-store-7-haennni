@@ -8,4 +8,16 @@ public class Order {
         this.name = name;
         this.quantity = quantity;
     }
+
+    public String orderName() {
+        return name;
+    }
+
+    public int orderQuantity() {
+        return quantity;
+    }
+
+    public boolean compareOrderQuantity(int inventoryQuantity) {
+        return inventoryQuantity > quantity;
+    }
 }
