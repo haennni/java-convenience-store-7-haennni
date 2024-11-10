@@ -2,7 +2,7 @@ package store.domain;
 
 public class Order {
     private final String name;
-    private final int quantity;
+    private int quantity;
 
     public Order(String name, int quantity) {
         this.name = name;
@@ -15,6 +15,10 @@ public class Order {
 
     public int orderQuantity() {
         return quantity;
+    }
+
+    public void plusOrderQuantity() {
+        this.quantity++;
     }
 
     public boolean compareOrderQuantity(int inventoryQuantity) {
