@@ -1,7 +1,6 @@
 package store.util;
 
 import store.domain.FilePath;
-import store.domain.Products;
 
 import java.io.IOException;
 import java.nio.file.Files;
