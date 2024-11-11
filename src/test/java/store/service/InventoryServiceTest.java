@@ -33,7 +33,7 @@ class InventoryServiceTest {
                 return "[초코바-12], [사이다-1]";
             }
         };
-        new ConvenienceStoreRepository(new ProductFactory(), new PromotionFactory(), new OrderFactory(), inputView, new InputParser());
+        new ConvenienceStoreRepository(new ProductFactory(), new PromotionFactory(), new OrderFactory(), new InputParser());
         addProducts();
         products.clear();
         products.addAll(testProducts);
