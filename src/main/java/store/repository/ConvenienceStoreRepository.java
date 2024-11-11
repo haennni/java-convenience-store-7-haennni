@@ -3,6 +3,7 @@ package store.repository;
 import store.domain.Order;
 import store.domain.Product;
 import store.domain.Promotion;
+import store.domain.Receipt;
 import store.factory.OrderFactory;
 import store.factory.ProductFactory;
 import store.factory.PromotionFactory;
@@ -14,17 +15,21 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ConvenienceStoreRepository {
+    public static Receipt receipt = new Receipt();
     public static List<Product> products = new ArrayList<>();
-    public final static List<Order> orders = new ArrayList<>();
+    public static List<Order> orders = new ArrayList<>();
     public final static List<Promotion> promotions = new ArrayList<>();
 
     public ConvenienceStoreRepository(ProductFactory productFactory, PromotionFactory promotionFactory,
-                                      OrderFactory orderFactory, InputView inputView, InputParser inputParser) throws IOException {
+                                      OrderFactory orderFactory, InputParser inputParser) throws IOException {
         products = productFactory.toProducts();
-        String orderInput = inputView.orderInput();
-        List<String[]> orders = inputParser.orderParser(orderInput);
-        orderFactory.toOrders(orders);
         promotionFactory.toPromotions();
+    }
+
+    public void loadOrders(InputView inputView, InputParser inputParser) {
+        String orderInput = inputView.orderInput();
+        List<String[]> orderData = inputParser.orderParser(orderInput);
+        orders = OrderFactory.toOrders(orderData);
     }
 
     public List<Product> products() {

@@ -30,8 +30,9 @@ class ConvenienceStoreRepositoryTest {
         promotionFactory = new PromotionFactory();
         orderFactory = new OrderFactory();
         inputParser = new InputParser();
-        inputView = new InputView() {public String orderInput() {return "[콜라-2], [사이다-1]";}};
-        repository = new ConvenienceStoreRepository(productFactory, promotionFactory, orderFactory, inputView, inputParser);
+        inputView = new InputView() {public String orderInput() {return "[콜라-2], [사이다-1]";}
+        };
+        repository = new ConvenienceStoreRepository(productFactory, promotionFactory, orderFactory, inputParser);
     }
 
     @Test
@@ -46,6 +47,9 @@ class ConvenienceStoreRepositoryTest {
     @Test
     @DisplayName("저장소에서 주문 리스트를 가져오는 테스트")
     void 저장소에서_주문_리스트_가져오기_테스트() {
+        // loadOrders 호출을 통해 주문 데이터를 초기화
+        repository.loadOrders(inputView, inputParser);
+
         List<Order> orders = repository.orders();
         assertNotNull(orders, "주문 리스트는 null이 아니어야 합니다.");
         assertTrue(orders.size() > 0, "주문 리스트는 비어있지 않아야 합니다.");
