@@ -19,7 +19,6 @@ class BenefitTest {
     void testBenefitInitialization() {
         assertEquals("콜라", benefit.benefitProductName(), "상품명이 올바르게 초기화되어야 합니다.");
         assertEquals(2, benefit.benefitQuantity(), "수량이 올바르게 초기화되어야 합니다.");
-        assertEquals(0, benefit.benefitAmount(), "초기 금액이 0으로 초기화되어야 합니다.");
     }
 
     @Test

@@ -24,4 +24,8 @@ public class Order {
     public boolean compareOrderQuantity(int inventoryQuantity) {
         return inventoryQuantity > quantity;
     }
+
+    public void reduceQuantity(int remainder) {
+        quantity -= remainder;
+    }
 }
