@@ -5,6 +5,7 @@ import store.util.FileReader;
 import store.util.InputParser;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import static store.repository.ConvenienceStoreRepository.products;
@@ -16,11 +17,12 @@ public class ProductFactory {
 
     public List<Product> toProducts() throws IOException {
         List<String> readProducts = fileReader.readProducts();
+        List<Product> products = new ArrayList<>();
         for(int i = 1; i < readProducts.size(); i++) {
             String readProductLine = readProducts.get(i);
             String[] splitProduct = inputParser.commaParser(readProductLine);
             Product product = toProduct(splitProduct);
-            products.add(product);}
+            products.add(product);  }
         return products;
     }
     private Product toProduct(String[] product) {
@@ -31,7 +33,7 @@ public class ProductFactory {
                 checkPromotion(product[3]));
     }
     private String checkPromotion(String promotionName) {
-        if (!(promotionName.equals("null"))) {
+        if (promotionName == null || !promotionName.equals("null")) {
             return promotionName;
         }
         return null;
