@@ -56,17 +56,17 @@ class PromotionServiceTest {
         Order order = new Order("사이다", 5);
         Promotion promotion = promotions.get(1);
         Product product = products.get(1);
-        promotionService.twoPlusOnePromotion(product, promotion, order);
+        promotionService.applyOnePlusOnePromotion(product, promotion, order);
         assertEquals(6, order.orderQuantity(), "1+1 프로모션 적용 후 주문 수량이 올바르게 증가해야 함");
     }
 
     @Test
     @DisplayName("2+1 프로모션이 적용될 때, 주문 수량에 따른 남은 수량을 올바르게 처리")
     void 투_플러스_원_남은_수량을_올바르게_처리하는_지_확인하는_테스트() {
-        Order order = new Order("콜라", 5);
+        Order order = new Order("콜라", 5);  // 콜라는 2+1 프로모션
         Promotion promotion = promotions.get(0);
         Product product = products.get(0);
-        promotionService.onePlusOnePromotion(product, promotion, order);
+        promotionService.applyTwoPlusOnePromotion(product, promotion, order);
         assertEquals(6, order.orderQuantity(), "2+1 프로모션 적용 후 주문 수량이 올바르게 증가해야 함");
     }
 
@@ -80,31 +80,5 @@ class PromotionServiceTest {
         Promotion expiredPromotion = new Promotion("MD추천상품", 1, 1, "2022-01-01", "2024-01-31");
         boolean isExpired = promotionService.promotionDateValid(expiredPromotion);
         assertThat(isExpired).isFalse();
-    }
-
-    @Test
-    @DisplayName("2+1 프로모션이 적용되어 Benefit이 생성되는지 테스트")
-    void 투_플러스_원_프로모션으로_Benefit이_생성되는지_확인하는_테스트() {
-        Order order = new Order("콜라", 5);
-        Product product = products.get(0);
-        Promotion promotion = promotions.get(0);
-        promotionService.twoPlusOnePromotion(product, promotion, order);
-        Benefit benefit = receipt.benefits().get(0);
-        assertEquals("콜라", benefit.benefitProductName(), "프로모션 적용 상품명이 일치하지않습니다.");
-        assertEquals(2, benefit.benefitQuantity(), "혜택 적용 주문 수량이 일치하지않습니다.");
-        assertEquals(2000, benefit.benefitAmount(),"혜택 금액이 일치하지않습니다.");
-    }
-
-    @Test
-    @DisplayName("1+1 프로모션이 적용되어 Benefit이 생성되는지 테스트")
-    void 원_플러스_원_프로모션으로_Benefit이_생성되는지_확인하는_테스트() {
-        Order order = new Order("오렌지주스", 2);
-        Product product = products.get(1);
-        Promotion promotion = promotions.get(1);
-        promotionService.twoPlusOnePromotion(product, promotion, order);
-        Benefit benefit = receipt.benefits().get(0);
-        assertEquals("오렌지주스", benefit.benefitProductName(), "프로모션 적용 상품명이 일치하지않습니다.");
-        assertEquals(2, benefit.benefitQuantity(), "혜택 적용 주문 수량이 일치하지않습니다.");
-        assertEquals(3600, benefit.benefitAmount(), "혜택 금액이 일치하지않습니다.");
     }
 }

@@ -34,4 +34,5 @@ public class Promotion {
     public String promotionEndDate() {
         return endDate;
     }
+
 }
