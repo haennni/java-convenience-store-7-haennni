@@ -5,6 +5,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import store.domain.Receipt;
 import store.repository.ConvenienceStoreRepository;
+import store.view.InputView;
 
 import java.time.LocalDate;
 
@@ -20,8 +21,8 @@ class ApplicationTest extends NsTest {
         ConvenienceStoreRepository.products.clear();
         ConvenienceStoreRepository.orders.clear();
         ConvenienceStoreRepository.receipt = new Receipt();
+        InputView.enableTestMode();
     }
-
     @Test
     void 파일에_있는_상품_목록_출력() {
         assertSimpleTest(() -> {

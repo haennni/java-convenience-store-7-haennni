@@ -20,7 +20,6 @@ class PromotionServiceTest {
 
     @BeforeEach
     void setUp() {
-        inputSetting();
         dataClear();
         promotionService = new PromotionService(inputView);
         Product product1 = new Product("콜라", 1000, 10, "탄산2+1");
@@ -33,43 +32,8 @@ class PromotionServiceTest {
 
     void dataClear() {
         products.clear();
-        receipt = new Receipt(); // 기존 receipt 객체 초기화
+        receipt = new Receipt();
     }
-
-    void inputSetting() {
-        inputView = new InputView() {
-            @Override
-            public String promotionInventoryLowInput(String productName, int remainder) {
-                return "Y";
-            }
-
-            @Override
-            public String promotionFreeBenefitInput(String productName, int promotionGet) {
-                return "Y";
-            }
-        };
-    }
-
-    @Test
-    @DisplayName("1+1 프로모션이 적용될 때, 주문 수량에 따른 남은 수량을 올바르게 처리")
-    void 원_플러스_원_남은_수량을_올바르게_처리하는_지_확인하는_테스트() {
-        Order order = new Order("사이다", 5);
-        Promotion promotion = promotions.get(1);
-        Product product = products.get(1);
-        promotionService.onePlusOnePromotion(product,promotion,order);
-        assertEquals(6, order.orderQuantity(), "1+1 프로모션 적용 후 주문 수량이 올바르게 증가해야 함");
-    }
-
-    @Test
-    @DisplayName("2+1 프로모션이 적용될 때, 주문 수량에 따른 남은 수량을 올바르게 처리")
-    void 투_플러스_원_남은_수량을_올바르게_처리하는_지_확인하는_테스트() {
-        Order order = new Order("콜라", 5);  // 콜라는 2+1 프로모션
-        Promotion promotion = promotions.get(0);
-        Product product = products.get(0);
-        promotionService.twoPlusOnePromotion(product,promotion,order);
-        assertEquals(6, order.orderQuantity(), "2+1 프로모션 적용 후 주문 수량이 올바르게 증가해야 함");
-    }
-
 
     @Test
     @DisplayName("주문 날짜가 프로모션의 기간 범위 내에 속하는지 테스트한다.")

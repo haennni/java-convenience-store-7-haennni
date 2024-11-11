@@ -6,6 +6,7 @@ import store.factory.PromotionFactory;
 import store.repository.ConvenienceStoreRepository;
 import store.service.ConvenienceStoreService;
 import store.service.InventoryService;
+import store.service.MembershipService;
 import store.service.PromotionService;
 import store.util.InputParser;
 import store.view.InputView;
@@ -24,7 +25,6 @@ public class Application {
             do {
                 services.outputView.welcomeMessage(services.repository.products());
                 additionalPurchase = start(services);
-                services.outputView.printReceipt(receipt);
             } while (additionalPurchase.equalsIgnoreCase("Y"));
 
         } catch (IOException e) {
@@ -38,6 +38,7 @@ public class Application {
         String additionalPurchase;
         services.repository.loadOrders(services.inputView, services.inputParser);
         services.convenienceStoreService.run();
+        services.outputView.printReceipt(receipt);
         additionalPurchase = services.inputView.additionalPurchasesInput();
         orders.clear();
         return additionalPurchase;
@@ -53,7 +54,8 @@ public class Application {
         ConvenienceStoreRepository repository = new ConvenienceStoreRepository(productFactory, promotionFactory, orderFactory, inputParser);
         PromotionService promotionService = new PromotionService(inputView);
         InventoryService inventoryService = new InventoryService(promotionService);
-        ConvenienceStoreService convenienceStoreService = new ConvenienceStoreService(repository, inventoryService, promotionService, outputView);
+        MembershipService membershipService = new MembershipService();
+        ConvenienceStoreService convenienceStoreService = new ConvenienceStoreService(repository, inventoryService, promotionService, membershipService ,outputView,inputView);
         return new ServiceContainer(repository, inputView, inputParser, outputView, promotionService, inventoryService, convenienceStoreService);
     }
 

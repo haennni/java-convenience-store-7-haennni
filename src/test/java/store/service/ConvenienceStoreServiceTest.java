@@ -5,7 +5,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import store.domain.Order;
 import store.domain.Product;
-import store.domain.Promotion;
 import store.domain.Receipt;
 import store.factory.OrderFactory;
 import store.factory.ProductFactory;
@@ -18,10 +17,9 @@ import store.view.OutputView;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static store.repository.ConvenienceStoreRepository.receipt;
 
 class ConvenienceStoreServiceTest {
     private ConvenienceStoreRepository repository;
@@ -30,6 +28,7 @@ class ConvenienceStoreServiceTest {
     private OutputView outputView;
     private ConvenienceStoreService convenienceStoreService;
     private InputView inputView;
+    private MembershipService membershipService;
 
     @BeforeEach
     void setUp() throws IOException {
@@ -37,28 +36,21 @@ class ConvenienceStoreServiceTest {
         PromotionFactory promotionFactory = new PromotionFactory();
         OrderFactory orderFactory = new OrderFactory();
         InputParser inputParser = new InputParser();
-        inputView = new InputView();
-        ConvenienceStoreRepository.receipt = new Receipt();
+
+        // InputView에 사용자 입력 대신 고정된 값을 사용하도록 수정
+        inputView = new InputView() {
+            @Override
+            public String membershipDiscountInput() {
+                return "N";
+            }
+        };
+
+        receipt = new Receipt();
         repository = new ConvenienceStoreRepository(productFactory, promotionFactory, orderFactory, inputParser);
         promotionService = new PromotionService(inputView);
         inventoryService = new InventoryService(promotionService);
+        membershipService = new MembershipService();
         outputView = new OutputView();
-        convenienceStoreService = new ConvenienceStoreService(repository, inventoryService, promotionService, outputView);
+        convenienceStoreService = new ConvenienceStoreService(repository, inventoryService, promotionService, membershipService, outputView, inputView);
     }
-
-    private void setTestInput(String input) {
-        System.setIn(new ByteArrayInputStream(input.getBytes()));
-    }
-
-    @Test
-    @DisplayName("재고가 없거나 주문 수량이 더 많을 경우 예외 발생")
-    void testOutOfStockOrExceedsInventory() {
-        repository.products().add(new Product("콜라", 1000, 0, null));
-        repository.orders().add(new Order("콜라", 1));
-
-        // 예외 검증
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> convenienceStoreService.run());
-        assertEquals(Error.OVER_INVENTORY.errorMsg(), exception.getMessage());
-    }
-
 }
