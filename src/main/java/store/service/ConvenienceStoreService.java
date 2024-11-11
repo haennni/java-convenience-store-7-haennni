@@ -33,7 +33,6 @@ public class ConvenienceStoreService {
             processOrder(order, product);
             calculateTotalOrderAmount(order);}
         receipt.calculateFinalAmount();
-        outputView.printReceipt(receipt);
     }
 
     private Optional<Product> findProductByName(String orderName) {
@@ -43,6 +42,8 @@ public class ConvenienceStoreService {
     }
 
     private void processOrder(Order order, Product product) {
+        inventoryService.checkInventory(order);
+
         if (product.productPromotionName() == null) {
             inventoryService.checkInventory(order);
             return;
@@ -51,7 +52,6 @@ public class ConvenienceStoreService {
             promotionService.checkPromotion(order);
             return;
         }
-        inventoryService.checkInventory(order);
     }
 
     private int productPrice(String orderName) {

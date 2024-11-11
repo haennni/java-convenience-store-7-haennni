@@ -56,7 +56,7 @@ class PromotionServiceTest {
         Order order = new Order("사이다", 5);
         Promotion promotion = promotions.get(1);
         Product product = products.get(1);
-        promotionService.applyOnePlusOnePromotion(product, promotion, order);
+        promotionService.onePlusOnePromotion(product,promotion,order);
         assertEquals(6, order.orderQuantity(), "1+1 프로모션 적용 후 주문 수량이 올바르게 증가해야 함");
     }
 
@@ -66,7 +66,7 @@ class PromotionServiceTest {
         Order order = new Order("콜라", 5);  // 콜라는 2+1 프로모션
         Promotion promotion = promotions.get(0);
         Product product = products.get(0);
-        promotionService.applyTwoPlusOnePromotion(product, promotion, order);
+        promotionService.twoPlusOnePromotion(product,promotion,order);
         assertEquals(6, order.orderQuantity(), "2+1 프로모션 적용 후 주문 수량이 올바르게 증가해야 함");
     }
 

@@ -6,6 +6,7 @@ import store.domain.Order;
 import store.domain.Product;
 import store.domain.Promotion;
 import store.validation.Error;
+import store.validation.Validation;
 import store.view.InputView;
 
 import java.time.LocalDateTime;
@@ -22,107 +23,106 @@ public class PromotionService {
     }
 
     public void checkPromotion(Order order) {
-        Product product = getEligiblePromotionProduct(order);
-        Promotion promotion = getPromotionForProduct(product);
-
-        validateInventory(order, product);
-
-        if (isPromotionDateValid(promotion)) {
-            applyPromotionBasedOnType(product, promotion, order);
-        }
-    }
-
-    private void validateInventory(Order order, Product product) {
-        int requiredQuantity = order.orderQuantity();
-        int availableQuantity = product.productQuantity();
-        if (availableQuantity < requiredQuantity) {
+        Product product = eilgiblePromotionProduct(order);
+        Validation.validatePromotionProductExists(product);
+        Promotion promotion = findPromotion(product.productPromotionName());
+        Validation.validatePromotionExists(promotion);
+        if (product.productQuantity() < order.orderQuantity()) {
             throw new IllegalArgumentException(Error.OVER_INVENTORY.errorMsg());
         }
-    }
-
-    private Product getEligiblePromotionProduct(Order order) {
-        return products.stream()
-                .filter(p -> p.productName().equals(order.orderName()))
-                .filter(p -> p.productPromotionName() != null && p.productQuantity() > 0)
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException(Error.PROMOTION_PRODUCT_NOT_FOUND.errorMsg()));
-    }
-
-    private Promotion getPromotionForProduct(Product product) {
-        return promotions.stream()
-                .filter(p -> p.promotionName().equals(product.productPromotionName()))
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException(Error.PROMOTION_NOT_FOUND.errorMsg()));
-    }
-
-    private boolean isPromotionDateValid(Promotion promotion) {
-        LocalDateTime currentDate = DateTimes.now();
-        return currentDate.isAfter(toDate(promotion.promotionStartDate())) &&
-                currentDate.isBefore(toDate(promotion.promotionEndDate()));
-    }
-
-    private void applyPromotionBasedOnType(Product product, Promotion promotion, Order order) {
-        if ("탄산2+1".equals(promotion.promotionName())) {
-            applyTwoPlusOnePromotion(product, promotion, order);
-            return;
-        }
-        if("MD추천상품".equals(promotion.promotionName()) || "반짝할인".equals(promotion.promotionName())) {
-            applyOnePlusOnePromotion(product, promotion, order);
+        if (promotionDateValid(promotion)) {
+            if (promotion.promotionName().equals("탄산2+1"))
+                twoPlusOnePromotion(product, promotion, order);
+            if (promotion.promotionName().equals("MD추천상품") || promotion.promotionName().equals("반짝할인"))
+                onePlusOnePromotion(product, promotion, order);
         }
     }
 
-    void applyOnePlusOnePromotion(Product product, Promotion promotion, Order order) {
+    // 프로모션 기간 검사
+    public boolean promotionDateValid(Promotion promotion) {
+        LocalDateTime orderTime = DateTimes.now();
+        LocalDateTime promotionStartDate = toDate(promotion.promotionStartDate());
+        LocalDateTime promotionEndDate = toDate(promotion.promotionEndDate());
+        // orderTime이 시작일 이상이고 종료일 이하일 때 true 반환
+        return (orderTime.isEqual(promotionStartDate) || orderTime.isAfter(promotionStartDate)) &&
+                (orderTime.isEqual(promotionEndDate) || orderTime.isBefore(promotionEndDate));
+    }
+
+
+    private Product eilgiblePromotionProduct(Order order) {
+        return products.stream().filter(p -> p.productName().equals(order.orderName()))
+                .filter(p -> !(p.productPromotionName() == null))
+                .filter(p -> !(p.productQuantity() == 0))
+                .findFirst().orElse(null);
+    }
+
+    private Promotion findPromotion(String promotionName) {
+        return promotions.stream().filter(p -> p.promotionName().equals(promotionName))
+                .findFirst().orElse(null);
+    }
+
+    // 1+1 Promotion 로직
+    void onePlusOnePromotion(Product product, Promotion promotion, Order order) {
         if (product.productQuantity() > order.orderQuantity()) {
-            handleOnePlusOneRemainder(product, promotion, order);
+            handleOnePlusOnePromotionRemainder(product, promotion, order);
             return;
         }
-        handleOnePlusOneFullPromotion(product, promotion, order);
+        handleOnePlusOneNonFullPromotion(product, promotion, order);
     }
 
-    private void handleOnePlusOneRemainder(Product product, Promotion promotion, Order order) {
+    // 1+1의 나머지 처리를 담당하는 메서드
+    private void handleOnePlusOnePromotionRemainder(Product product, Promotion promotion, Order order) {
         int remainder = order.orderQuantity() % 2;
         createBenefit(product, order, promotion.promotionBuy() + 1);
         if (remainder == 1) {
-            applyPromotionWithCustomerAgreement(order, promotion, true, 1, product.productPrice());
+            applyPromotionIfAgreed(order, promotion, true, 1, product.productPrice());
         }
     }
 
-    private void handleOnePlusOneFullPromotion(Product product, Promotion promotion, Order order) {
+    // 주문 수량이 프로모션 기준을 넘었을 때 남은 수량을 처리하는 메서드
+    private void handleOnePlusOneNonFullPromotion(Product product, Promotion promotion, Order order) {
         int remainder = product.productQuantity() % 2;
         createBenefit(product, order, promotion.promotionBuy() + 1);
-        int nonPromotionQuantity = order.orderQuantity() - product.productQuantity() + remainder;
-        if (nonPromotionQuantity > 0) {
-            applyPromotionWithCustomerAgreement(order, promotion, true, nonPromotionQuantity, product.productPrice());
-        }
+        int regularQuantity = order.orderQuantity() - product.productQuantity() + remainder;
+        if (regularQuantity > 0)
+            applyPromotionIfAgreed(order, promotion, true, regularQuantity, product.productPrice());
     }
 
-    void applyTwoPlusOnePromotion(Product product, Promotion promotion, Order order) {
+    // 2+1 Promotion 로직
+    void twoPlusOnePromotion(Product product, Promotion promotion, Order order) {
+        // 주문 수량이 재고 갯수보다 적을 때
         if (product.productQuantity() > order.orderQuantity()) {
-            handleTwoPlusOneRemainder(order, product, promotion, 3);
-            return;}
-        handleTwoPlusOneFullPromotion(order, product, promotion, 3);
+            handleTwoPlusOnePromotionRemainder(order, product, promotion, 3);
+            return;
+        }
+        // 주문 수량이 프로모션 조건과 같거나 많을 때
+        handleTwoPlusOneNonFullPromotion(order, product, promotion, 3);
     }
 
-    private void handleTwoPlusOneRemainder(Order order, Product product, Promotion promotion, int promotionSize) {
+    // 2+1프로모션의 나머지를 처리하는 메서드
+    private void handleTwoPlusOnePromotionRemainder(Order order, Product product, Promotion promotion, int promotionSize) {
         int remainder = order.orderQuantity() % promotionSize;
-        createBenefit(product, order, promotion.promotionBuy());
+        createBenefit(product, order, promotion.promotionBuy() + 1);
         if (remainder == 1) {
-            applyPromotionWithCustomerAgreement(order, promotion, true, 1, product.productPrice());
-            return;}
-        if (remainder == 2) {
-            applyPromotionWithCustomerAgreement(order, promotion, false, 2, product.productPrice());}
+            applyPromotionIfAgreed(order, promotion, true, 1, product.productPrice());
+            return;
+        }
+        if (remainder == 2)
+            applyPromotionIfAgreed(order, promotion, false, 2, product.productPrice());
     }
 
-    private void handleTwoPlusOneFullPromotion(Order order, Product product, Promotion promotion, int promotionSize) {
+    // 2+1주문 수량이 프로모션 조건과 같거나 많을 때 남은 수량을 처리하는 메서드
+    private void handleTwoPlusOneNonFullPromotion(Order order, Product product, Promotion promotion, int promotionSize) {
         int notBenefit = order.orderQuantity() % promotionSize;
         createBenefit(product, order, promotion.promotionBuy() + 1);
         if (notBenefit != 0) {
             int remainder = product.productPromotionRemainder(order.orderQuantity()) + notBenefit;
-            applyPromotionWithCustomerAgreement(order, promotion, true, remainder, product.productPrice());
+            applyPromotionIfAgreed(order, promotion, true, remainder, product.productPrice());
         }
     }
 
-    private void applyPromotionWithCustomerAgreement(Order order, Promotion promotion, boolean isInventoryLow, int remainder, int price) {
+    // 고객 동의를 받아 프로모션을 적용하는 메서드
+    void applyPromotionIfAgreed(Order order, Promotion promotion, boolean isInventoryLow, int remainder, int price) {
         String answerBenefit;
         if (isInventoryLow) {
             answerBenefit = inputView.promotionInventoryLowInput(order.orderName(), remainder);
@@ -131,22 +131,26 @@ public class PromotionService {
         }
         answerBenefit = inputView.promotionFreeBenefitInput(order.orderName(), promotion.promotionGet());
         checkFreeBenefitEligibility(order, answerBenefit, price);
-
     }
 
-    private void checkRegularPurchase(Order order, String answer, int remainder) {
-        if ("N".equals(answer)) {
+    void checkRegularPurchase(Order order, String answer, int remainder) {
+        if (answer.equals("N")){
             order.reduceQuantity(remainder);
+            return;
         }
     }
 
-    private void checkFreeBenefitEligibility(Order order, String answer, int benefitPrice) {
-        if ("Y".equals(answer)) {
+
+    void checkFreeBenefitEligibility(Order order, String answer, int benefitPrice) {
+        if (answer.equals("Y")){
             order.plusOrderQuantity();
             List<Benefit> benefits = receipt.benefits();
-            benefits.stream()
-                    .filter(b -> b.benefitProductName().equals(order.orderName()))
-                    .forEach(b -> b.plusBenefitQuantity(benefitPrice));
+            benefits.stream().filter(b -> b.benefitProductName().equals(order.orderName())).forEach(b -> b.plusBenefitQuantity(benefitPrice));
+            receipt.reduceBenefitDiscount(benefitPrice);
+            return;
+        }
+        if (answer.equals("N")){
+            return;
         }
     }
 
@@ -160,17 +164,8 @@ public class PromotionService {
 
     private static void createBenefit(Product product, Order order, int promotionSize) {
         int benefitQuantity = order.orderQuantity() / promotionSize;
-        int discountAmount = benefitQuantity * product.productPrice();
-        Benefit benefit = new Benefit(order.orderName(), benefitQuantity, discountAmount);
-        System.out.println("Benefit created: " + discountAmount);
+        Benefit benefit = new Benefit(order.orderName(), benefitQuantity, product.productPrice());
         receipt.addBenefit(benefit);
     }
 
-    public boolean promotionDateValid(Promotion promotion) {
-        LocalDateTime orderTime = DateTimes.now();
-        LocalDateTime promotionStartDate = toDate(promotion.promotionStartDate());
-        LocalDateTime promotionEndDate = toDate(promotion.promotionEndDate());
-        return (orderTime.isEqual(promotionStartDate) || orderTime.isAfter(promotionStartDate)) &&
-                (orderTime.isEqual(promotionEndDate) || orderTime.isBefore(promotionEndDate));
-    }
 }

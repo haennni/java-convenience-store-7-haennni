@@ -14,6 +14,7 @@ import store.view.OutputView;
 import java.io.IOException;
 
 import static store.repository.ConvenienceStoreRepository.orders;
+import static store.repository.ConvenienceStoreRepository.receipt;
 
 public class Application {
     public static void main(String[] args) {
@@ -23,6 +24,7 @@ public class Application {
             do {
                 services.outputView.welcomeMessage(services.repository.products());
                 additionalPurchase = start(services);
+                services.outputView.printReceipt(receipt);
             } while (additionalPurchase.equalsIgnoreCase("Y"));
 
         } catch (IOException e) {
@@ -32,6 +34,7 @@ public class Application {
         }
     }
     private static String start(ServiceContainer services) {
+        services.repository.resetReceipt();
         String additionalPurchase;
         services.repository.loadOrders(services.inputView, services.inputParser);
         services.convenienceStoreService.run();

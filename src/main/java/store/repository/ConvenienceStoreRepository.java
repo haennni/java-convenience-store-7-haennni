@@ -26,6 +26,10 @@ public class ConvenienceStoreRepository {
         promotionFactory.toPromotions();
     }
 
+    public void resetReceipt() {
+        receipt = new Receipt();  // 새 객체를 할당하여 초기화합니다.
+    }
+
     public void loadOrders(InputView inputView, InputParser inputParser) {
         String orderInput = inputView.orderInput();
         List<String[]> orderData = inputParser.orderParser(orderInput);

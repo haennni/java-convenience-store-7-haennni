@@ -20,6 +20,14 @@ public class InventoryService {
         this.promotionService = promotionService;
     }
     public void checkInventory(Order order) {
+        Product product = products.stream()
+                .filter(p -> p.productName().equals(order.orderName()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException(Error.PRODUCT_NOT_FOUND.errorMsg()));
+        if (product.productQuantity() == 0) {
+            throw new IllegalArgumentException(Error.OVER_INVENTORY.errorMsg());}
+        if (product.productQuantity() < order.orderQuantity()) {
+            throw new IllegalArgumentException(Error.OVER_INVENTORY.errorMsg());}
         checkOrderEligibility(order, products);
     }
 
@@ -48,7 +56,7 @@ public class InventoryService {
 
     private void reduceRegularStock(Product product, int orderQuantity) {
         if (product.productQuantity() < orderQuantity) {
-            throw new IllegalArgumentException(Error.OVER_INVENTORY.errorMsg());
+            throw new IllegalArgumentException(Error.OVER_INVENTORY.errorMsg()); // Error Enum을 사용한 예외 메시지
         }
         product.deductionProductQuantity(orderQuantity);
     }

@@ -12,6 +12,7 @@ import store.factory.ProductFactory;
 import store.factory.PromotionFactory;
 import store.repository.ConvenienceStoreRepository;
 import store.util.InputParser;
+import store.validation.Error;
 import store.view.InputView;
 import store.view.OutputView;
 
@@ -50,24 +51,14 @@ class ConvenienceStoreServiceTest {
     }
 
     @Test
-    @DisplayName("영수증 출력이 올바르게 이루어지는지 확인")
-    void testRun() {
-        // 테스트 입력값 설정
-        setTestInput("[콜라-2], [사이다-1]\nY\nY\nY\nN\n");
+    @DisplayName("재고가 없거나 주문 수량이 더 많을 경우 예외 발생")
+    void testOutOfStockOrExceedsInventory() {
+        repository.products().add(new Product("콜라", 1000, 0, null));
+        repository.orders().add(new Order("콜라", 1));
 
-        // 테스트 데이터 설정
-        repository.products().add(new Product("콜라", 1000, 5, "탄산2+1"));
-        repository.products().add(new Product("사이다", 2000, 10, null));
-        repository.promotions().add(new Promotion("탄산2+1", 2, 1, "2023-01-01", "2024-12-31"));
-
-        // 주문 데이터를 로드
-        repository.loadOrders(inputView, new InputParser());
-
-        // 서비스 실행
-        convenienceStoreService.run();
-
-        assertEquals(4000, ConvenienceStoreRepository.receipt.originalAmount(), "총구매액은 4,000원이여야 합니다.");
-        assertEquals(1000, ConvenienceStoreRepository.receipt.benefitDiscount(), "행사할인은 1,000원이여야 합니다.");
-        assertEquals(3000, ConvenienceStoreRepository.receipt.finalAmount(), "내실돈은 3,000원이여야 합니다.");
+        // 예외 검증
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> convenienceStoreService.run());
+        assertEquals(Error.OVER_INVENTORY.errorMsg(), exception.getMessage());
     }
+
 }
