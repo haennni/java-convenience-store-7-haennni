@@ -21,9 +21,9 @@ class FileReaderTest {
     @Test
     void 상품_리스트_파일_불러오기_테스트() throws IOException {
         List<String> products = fileReader.readProducts();
-        assertEquals(17, products.size(),"products.md 파일의 사이즈가 일치하지않습니다.");
+        assertEquals(19, products.size(),"products.md 파일의 사이즈가 일치하지않습니다.");
         assertEquals("콜라,1000,10,탄산2+1", products.get(1),"index 1번 상품 리스트 목록이 일치하지않습니다.");
-        assertEquals("컵라면,1700,10,null", products.get(16),"index 16번 상품 리스트 목록이 일치하지않습니다.");
+        assertEquals("컵라면,1700,10,null", products.get(18),"index 16번 상품 리스트 목록이 일치하지않습니다.");
     }
 
     @Test

@@ -6,13 +6,18 @@ import java.util.List;
 public class InputParser {
 
     public List<String[]> orderParser(String input) {
-        String[] commaParserResult = commaAndSpaceParser(input);
+        String[] commaParserResult = commaParser(input);
         String[] removeBracketsResult = removeBrackets(commaParserResult);
         return hyphenParser(removeBracketsResult);
     }
 
     public String[] commaParser(String input) {
-        return input.split(",");
+        String[] result = input.split(",");
+        for (int i = 0; i < result.length; i++) {
+            result[i] = result[i].trim();
+        }
+        return result;
+
     }
 
 
